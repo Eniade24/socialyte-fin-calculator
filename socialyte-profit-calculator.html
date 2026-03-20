@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Socialyte — Profit Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #f0ede6;
+    --muted: #888;
+    --accent: #c8f060;
+    --accent-dim: rgba(200,240,96,0.12);
+    --accent-border: rgba(200,240,96,0.3);
+    --owner: #c8f060;
+    --savings: #60c8f0;
+    --reinvest: #f0c860;
+    --tax: #f08060;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px 80px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  header {
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .field {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: border-color 0.15s;
+  }
+
+  .field:focus-within {
+    border-color: var(--border2);
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .currency-symbol {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--muted);
+    line-height: 1;
+  }
+
+  input[type="number"] {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]::placeholder { color: var(--border2); }
+
+  .net-profit-card {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .net-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  .net-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .net-value.negative {
+    color: var(--tax);
+  }
+
+  .net-value.zero {
+    color: var(--muted);
+  }
+
+  .allocation-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .allocation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .alloc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .alloc-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .alloc-card.owner::before  { background: var(--owner); }
+  .alloc-card.savings::before { background: var(--savings); }
+  .alloc-card.reinvest::before { background: var(--reinvest); }
+  .alloc-card.tax::before    { background: var(--tax); }
+
+  .alloc-emoji {
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .alloc-name {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .alloc-pct {
+    font-size: 11px;
+    color: var(--border2);
+    margin-bottom: 8px;
+  }
+
+  .alloc-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .alloc-card.owner  .alloc-amount { color: var(--owner); }
+  .alloc-card.savings .alloc-amount { color: var(--savings); }
+  .alloc-card.reinvest .alloc-amount { color: var(--reinvest); }
+  .alloc-card.tax    .alloc-amount { color: var(--tax); }
+
+  .month-select-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .month-select-row label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .clear-btn:hover {
+    border-color: var(--border2);
+    color: var(--text);
+  }
+
+  .archive-section {
+    margin-top: 10px;
+  }
+
+  .archive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .archive-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .save-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #0e0e0e;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .save-btn:hover { opacity: 0.85; }
+  .save-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .archive-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .archive-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .archive-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .archive-table td:first-child {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--muted);
+  }
+
+  .archive-table tr:last-child td { border-bottom: none; }
+
+  .archive-table .del-btn {
+    background: none;
+    border: none;
+    color: var(--border2);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .archive-table .del-btn:hover { color: var(--tax); }
+
+  .empty-archive {
+    text-align: center;
+    color: var(--border2);
+    font-size: 13px;
+    padding: 24px 0;
+    font-style: italic;
+  }
+
+  .warning {
+    background: rgba(240,128,96,0.08);
+    border: 1px solid rgba(240,128,96,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--tax);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .warning.show { display: block; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--border2);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-row">
+      <div class="dot"></div>
+      <span class="brand">Socialyte Agency</span>
+    </div>
+    <h1>Profit <em>Calculator</em></h1>
+    <p class="subtitle">Enter monthly revenue and expenses to calculate net profit and your 40/20/20/20 allocation.</p>
+  </header>
+
+  <div class="month-select-row">
+    <label>Month</label>
+    <select id="month-select">
+      <option value="January 2026">January 2026</option>
+      <option value="February 2026">February 2026</option>
+      <option value="March 2026" selected>March 2026</option>
+      <option value="April 2026">April 2026</option>
+      <option value="May 2026">May 2026</option>
+      <option value="June 2026">June 2026</option>
+      <option value="July 2026">July 2026</option>
+      <option value="August 2026">August 2026</option>
+      <option value="September 2026">September 2026</option>
+      <option value="October 2026">October 2026</option>
+      <option value="November 2026">November 2026</option>
+      <option value="December 2026">December 2026</option>
+    </select>
+    <button class="clear-btn" onclick="clearInputs()">Clear</button>
+  </div>
+
+  <div class="inputs-grid">
+    <div class="field">
+      <label>Total Revenue</label>
+      <div class="input-wrap">
+        <span class="currency-symbol">$</span>
+        <input type="number" id="revenue" placeholder="0" min="0" oninput="calculate()" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Total Expenses</label>
+      <div class="input-wrap">
+        <span class="currency-symbol">$</span>
+        <input type="number" id="expenses" placeholder="0" min="0" oninput="calculate()" />
+      </div>
+    </div>
+  </div>
+
+  <div class="warning" id="warning">Expenses exceed revenue — net profit is negative. Review your expense entries.</div>
+
+  <div class="net-profit-card">
+    <span class="net-label">Net Profit</span>
+    <span class="net-value zero" id="net-value">$0</span>
+  </div>
+
+  <p class="allocation-title">Profit Allocation</p>
+
+  <div class="allocation-grid">
+    <div class="alloc-card owner">
+      <span class="alloc-emoji">👤</span>
+      <div class="alloc-name">Owner Pay</div>
+      <div class="alloc-pct">40% of net profit</div>
+      <div class="alloc-amount" id="owner-val">$0</div>
+    </div>
+    <div class="alloc-card savings">
+      <span class="alloc-emoji">🏦</span>
+      <div class="alloc-name">Business Savings</div>
+      <div class="alloc-pct">20% of net profit</div>
+      <div class="alloc-amount" id="savings-val">$0</div>
+    </div>
+    <div class="alloc-card reinvest">
+      <span class="alloc-emoji">📈</span>
+      <div class="alloc-name">Reinvestment</div>
+      <div class="alloc-pct">20% of net profit</div>
+      <div class="alloc-amount" id="reinvest-val">$0</div>
+    </div>
+    <div class="alloc-card tax">
+      <span class="alloc-emoji">🧾</span>
+      <div class="alloc-name">Tax Reserve</div>
+      <div class="alloc-pct">20% of net profit</div>
+      <div class="alloc-amount" id="tax-val">$0</div>
+    </div>
+  </div>
+
+  <div class="archive-section">
+    <div class="archive-header">
+      <span class="archive-title">Monthly Archive</span>
+      <button class="save-btn" id="save-btn" onclick="saveMonth()" disabled>Save Month</button>
+    </div>
+    <div id="archive-container">
+      <p class="empty-archive">No months saved yet. Calculate and save to build your archive.</p>
+    </div>
+  </div>
+
+  <footer>Socialyte Agency · Internal Finance Tool · Data stored locally in your browser</footer>
+</div>
+
+<script>
+  let archive = JSON.parse(localStorage.getItem('socialyte_archive') || '[]');
+
+  function fmt(n) {
+    if (n === 0) return '$0';
+    const abs = Math.abs(n);
+    const str = abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (n < 0 ? '-$' : '$') + str;
+  }
+
+  function calculate() {
+    const rev = parseFloat(document.getElementById('revenue').value) || 0;
+    const exp = parseFloat(document.getElementById('expenses').value) || 0;
+    const net = rev - exp;
+
+    const netEl = document.getElementById('net-value');
+    netEl.textContent = fmt(net);
+    netEl.className = 'net-value' + (net < 0 ? ' negative' : net === 0 ? ' zero' : '');
+
+    document.getElementById('warning').classList.toggle('show', net < 0);
+
+    const alloc = net > 0 ? net : 0;
+    document.getElementById('owner-val').textContent   = fmt(alloc * 0.40);
+    document.getElementById('savings-val').textContent = fmt(alloc * 0.20);
+    document.getElementById('reinvest-val').textContent = fmt(alloc * 0.20);
+    document.getElementById('tax-val').textContent     = fmt(alloc * 0.20);
+
+    document.getElementById('save-btn').disabled = (rev === 0 && exp === 0);
+  }
+
+  function clearInputs() {
+    document.getElementById('revenue').value = '';
+    document.getElementById('expenses').value = '';
+    calculate();
+  }
+
+  function saveMonth() {
+    const month = document.getElementById('month-select').value;
+    const rev = parseFloat(document.getElementById('revenue').value) || 0;
+    const exp = parseFloat(document.getElementById('expenses').value) || 0;
+    const net = rev - exp;
+
+    const existing = archive.findIndex(r => r.month === month);
+    const record = { month, rev, exp, net };
+    if (existing >= 0) archive[existing] = record;
+    else archive.push(record);
+
+    archive.sort((a, b) => {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const [am, ay] = a.month.split(' ');
+      const [bm, by] = b.month.split(' ');
+      return ay !== by ? ay - by : months.indexOf(am) - months.indexOf(bm);
+    });
+
+    localStorage.setItem('socialyte_archive', JSON.stringify(archive));
+    renderArchive();
+  }
+
+  function deleteMonth(idx) {
+    archive.splice(idx, 1);
+    localStorage.setItem('socialyte_archive', JSON.stringify(archive));
+    renderArchive();
+  }
+
+  function renderArchive() {
+    const container = document.getElementById('archive-container');
+    if (archive.length === 0) {
+      container.innerHTML = '<p class="empty-archive">No months saved yet. Calculate and save to build your archive.</p>';
+      return;
+    }
+    let html = `<table class="archive-table">
+      <thead><tr>
+        <th>Month</th><th>Revenue</th><th>Expenses</th><th>Net Profit</th><th></th>
+      </tr></thead><tbody>`;
+    archive.forEach((r, i) => {
+      html += `<tr>
+        <td>${r.month}</td>
+        <td>${fmt(r.rev)}</td>
+        <td>${fmt(r.exp)}</td>
+        <td style="color:${r.net >= 0 ? 'var(--accent)' : 'var(--tax)'}">${fmt(r.net)}</td>
+        <td><button class="del-btn" onclick="deleteMonth(${i})" title="Remove">×</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  renderArchive();
+</script>
+</body>
+</html>
